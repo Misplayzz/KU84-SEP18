@@ -48,8 +48,8 @@ for (const file of eventFiles) {
 (async () => {
     try {
         // Get the Spotify Access Token
-        const accessToken = await getAccessToken();
-        console.log('Spotify Access Token:', accessToken);
+        //const accessToken = await getAccessToken();
+        //console.log('Spotify Access Token:', accessToken);
         console.log('YouTube apiKey:', apiKey);
 
         // Deploy commands
