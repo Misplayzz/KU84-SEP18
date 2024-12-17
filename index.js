@@ -9,7 +9,6 @@ const token = process.env.TOKEN; // Ensure the environment variable is correctly
 const apiKey = process.env.APIKEY;
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 
-const getAccessToken = require('./spotify/spotify_access');
 const deployCommands = require('./deploy-commands');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
