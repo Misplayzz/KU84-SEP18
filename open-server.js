@@ -1,31 +1,36 @@
 const http = require('http');
 const axios = require('axios');
 
-// สร้าง HTTP server
-const server = http.createServer((req, res) => {
-  if (req.url === '/') {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    res.end("I'm alive!");  // ตอบกลับข้อความเมื่อเปิดลิงก์ '/'
-  } else {
-    res.statusCode = 404;
-    res.end('Not Found');
-  }
+// สร้างเซิร์ฟเวอร์
+const port = process.env.PORT || 8080;
+http.createServer((req, res) => {
+  res.write("I'm alive");
+  res.end();
+}).listen(port, () => {
+  console.log(`Keep-alive server is running on port ${port}`);
 });
 
-// กำหนดให้เซิร์ฟเวอร์ฟังที่พอร์ต 3000
-const PORT = 3000;
-server.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
-
-// ใช้ axios เพื่อส่งคำขอ GET ไปที่เซิร์ฟเวอร์เองเพื่อทำให้มันทำงานตลอดเวลา
-setInterval(() => {
-  axios.get(`http://localhost:${PORT}`)
-    .then(response => {
-      console.log('Keep-alive successful:', response.data);
-    })
-    .catch(err => {
-      console.error('Keep-alive failed:', err.message);
+// ฟังก์ชันแจ้งเตือนเมื่อเซิร์ฟเวอร์ล้มเหลว
+async function sendDiscordAlert() {
+  const webhookURL = 'https://discord.com/api/webhooks/1319911421395341372/WUzUkb70LSfgC9E523IHT11TVg1i9FkykCeyiBpnt5cRQq_KD9GxKMLTx2RfKRF11jKv'; // แทนด้วย Webhook URL ของคุณ
+  try {
+    await axios.post(webhookURL, {
+      content: "🚨 The server is down!",
     });
-}, 5 * 60 * 1000);  // ทำให้เชื่อมต่อทุกๆ 5 นาที
+    console.log('Discord alert sent!');
+  } catch (err) {
+    console.error('Failed to send Discord alert:', err.message);
+  }
+}
+
+// ตรวจสอบเซิร์ฟเวอร์ตัวเองทุก 5 นาที
+setInterval(() => {
+  axios.get(`http://localhost:${port}`)
+    .then(() => {
+      console.log("Self-check passed: Server is running.");
+    })
+    .catch(async (err) => {
+      console.error("Self-check failed: Server might be down.", err.message);
+      await sendDiscordAlert(); // แจ้งเตือนเมื่อเซิร์ฟเวอร์ล้มเหลว
+    });
+}, 5 * 60 * 1000); // ทุก 5 นาที
