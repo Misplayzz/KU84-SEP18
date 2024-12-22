@@ -1,24 +1,13 @@
 const http = require('http');
 const axios = require('axios');
 
+// Discord Webhook URL
+const webhookURL = 'https://discord.com/api/webhooks/1319911421395341372/WUzUkb70LSfgC9E523IHT11TVg1i9FkykCeyiBpnt5cRQq_KD9GxKMLTx2RfKRF11jKv';
+
+// พอร์ตสำหรับเซิร์ฟเวอร์
 const port = process.env.PORT || 8080;
-const websiteURL = 'https://ku84-sep18.onrender.com';
-const webhookURL = 'https://discord.com/api/webhooks/1319911421395341372/WUzUkb70LSfgC9E523IHT11TVg1i9FkykCeyiBpnt5cRQq_KD9GxKMLTx2RfKRF11jKv'; // เปลี่ยนเป็น Webhook ของคุณ
 
-// สร้างเซิร์ฟเวอร์ HTTP
-http.createServer((req, res) => {
-  if (req.url === '/') {
-    res.write("I'm alive!");
-    res.end();
-  } else {
-    res.writeHead(404);
-    res.end('Not Found');
-  }
-}).listen(port, () => {
-  console.log(`🚀 Server is running at http://localhost:${port}`);
-});
-
-// ฟังก์ชันสำหรับส่งแจ้งเตือนผ่าน Discord Webhook
+// ฟังก์ชันส่งข้อความแจ้งเตือนผ่าน Discord Webhook
 async function sendAlert(message) {
   try {
     await axios.post(webhookURL, { content: message });
@@ -28,22 +17,34 @@ async function sendAlert(message) {
   }
 }
 
-// ฟังก์ชันสำหรับตรวจสอบเว็บไซต์
-async function checkWebsite() {
+// สร้างเซิร์ฟเวอร์ HTTP
+const server = http.createServer((req, res) => {
+  if (req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.write("I'm alive");
+    res.end();
+  } else {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found');
+  }
+});
+
+// ตรวจสอบสถานะของเซิร์ฟเวอร์เอง
+async function checkServerStatus() {
   try {
-    const response = await axios.get(websiteURL);
+    const response = await axios.get(`http://localhost:${port}`);
     if (response.status === 200) {
-      console.log('✅ Website is up!');
-    } else {
-      console.warn('⚠️ Unexpected response status:', response.status);
-      sendAlert(`⚠️ Website is up but returned status ${response.status}`);
+      console.log('✅ Server is running.');
     }
   } catch (error) {
-    console.error('❌ Website is down:', error.message);
-    sendAlert(`❌ Website is down: ${error.message}`);
+    console.error('❌ Server is down:', error.message);
+    sendAlert(`❌ Server is down: ${error.message}`);
   }
 }
 
-// ตรวจสอบเว็บไซต์ทุก 5 นาที
-setInterval(checkWebsite, 5 * 60 * 1000);
-checkWebsite();
+// เริ่มเซิร์ฟเวอร์และตั้งค่าตรวจสอบสถานะ
+server.listen(port, () => {
+  console.log(`🚀 Server is running on port ${port}`);
+  // ตรวจสอบสถานะทุกๆ 5 นาที
+  setInterval(checkServerStatus, 5 * 60 * 1000);
+});
