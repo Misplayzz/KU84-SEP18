@@ -3,7 +3,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config();
 
-require('./open-server');
+require('./keep-alive');
 
 const token = process.env.TOKEN; // Ensure the environment variable is correctly named and loaded
 const apiKey = process.env.APIKEY;
