@@ -12,14 +12,14 @@ module.exports = {
             // Check if the user executing the command is the specific user from config.json
             if (interaction.user.id !== config.ownerId) {
                 await interaction.reply({ 
-                    content: `You aren't the owner. Only <@${config.ownerId}> can use this command. If you need assistance, please contact the bot owner.`, 
+                    content: `You aren't the owner. Only <@${config.ownerId}> can use this command.`, 
                     flags: 64
                 });
                 return;
             }
 
             // Immediately acknowledge the interaction
-            await interaction.deferReply({ ephemeral: false });
+            await interaction.deferReply({ flags: 64 });
 
             // Fetch the target channel
             const targetChannel = interaction.guild.channels.cache.get(config.indEmbedChannel);
@@ -86,12 +86,12 @@ module.exports = {
             if (messageCount > 0) {
                 await interaction.editReply({
                     content: `Successfully updated avatars for ${messageCount} message(s) in <#${config.indEmbedChannel}> after ${updateTimes} time(s).`,
-                    ephemeral: false
+                    flags: 64
                 });
             } else {
                 await interaction.editReply({
                     content: `Error to update picture in <#${config.indEmbedChannel}>. No messages found to update.`,
-                    ephemeral: false
+                    flags: 64
                 });
             }
 
