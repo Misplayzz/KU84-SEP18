@@ -64,7 +64,7 @@ module.exports = {
                     await newVoiceChannel.delete().catch(console.error);
                     // Inform the user that the channel was deleted
                     await interaction.followUp({
-                        content: `🗑️ Voice channel <#${newVoiceChannel.id}> was deleted because it was empty for 5 minutes.`,
+                        content: `🗑️ Voice channel was deleted because it was empty for 5 minutes.`,
                         flags: 64
                     });
                 }
