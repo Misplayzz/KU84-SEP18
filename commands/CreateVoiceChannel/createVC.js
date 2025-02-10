@@ -33,15 +33,6 @@ module.exports = {
         }
 
         try {
-            // Check if the bot has already created a voice channel
-            const existingChannel = interaction.guild.channels.cache.find(channel => channel.name === channelName && channel.type === ChannelType.GuildVoice);
-            if (existingChannel) {
-                return interaction.reply({
-                    content: `A voice channel named "${channelName}" already exists.`,
-                    flags: 64
-                });
-            }
-
             // Create a new voice channel within the same category
             const newVoiceChannel = await interaction.guild.channels.create({
                 name: channelName,
@@ -61,7 +52,7 @@ module.exports = {
 
             // Send a success message
             const reply = await interaction.reply({
-                content: `Voice channel created successfully: <#${newVoiceChannel.id}>.\n**__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`,
+                content: `Voice channel created successfully: <#${newVoiceChannel.id}>. **__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`,
                 flags: 64
             });
 
