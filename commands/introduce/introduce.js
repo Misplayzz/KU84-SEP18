@@ -9,62 +9,42 @@ module.exports = {
 
     async execute(interaction) {
         try {
-            // Ensure member is fetched correctly from the guild
             const member = await interaction.guild.members.fetch(interaction.user.id);
 
-            // Check if the command is used in the correct channel or if the user has the required role
+            // Check for correct channel and role
             if (interaction.channelId !== config.indChannel || !member.roles.cache.has(config.notIndRole)) {
                 return interaction.reply({
-                    content: `You can only use this command in <#${config.indChannel}> and you must have the role <@&${config.notIndRole}>.`,
-                    ephemeral: true,
+                    content: `You can only use this command in the following channel: <#${config.indChannel}> and you must have the role <@&${config.notIndRole}>.`,
+                    flags: 64, // used flags instead of ephemeral
                 });
             }
 
-            // Avoid duplicate replies
-            if (interaction.replied || interaction.deferred) return;
+            // Helper function to create text input fields
+            const createTextInput = (id, label, placeholder) => 
+                new TextInputBuilder()
+                    .setCustomId(id)
+                    .setLabel(label)
+                    .setStyle(TextInputStyle.Short)
+                    .setPlaceholder(placeholder)
+                    .setRequired(true);
 
             // Create the modal
             const modal = new ModalBuilder()
                 .setCustomId('introduceModal')
-                .setTitle('Send this message to introduce yourself.');
+                .setTitle('Send this message to introduce yourself.')
+                .addComponents(
+                    new ActionRowBuilder().addComponents(createTextInput('nicknameInput', "ชื่อเล่นของคุณชื่อว่าอะไร?", '[ใส่ชื่อเล่น]')),
+                    new ActionRowBuilder().addComponents(createTextInput('hobbyInput', "งานอดิเรกของคุณคืออะไร?", '[เล่นเกม, ร้องเพลง, ฟังเพลง, ฯลฯ]')),
+                    new ActionRowBuilder().addComponents(createTextInput('favoriteInput', "สิ่งที่คุณชอบคืออะไร?", '[อาหาร, สิ่งของ, หรือบางสิ่งอย่างอื่น]'))
+                );
 
-            // Create input fields
-            const nicknameInput = new TextInputBuilder()
-                .setCustomId('nicknameInput')
-                .setLabel("ชื่อเล่นของคุณชื่อว่าอะไร?")
-                .setStyle(TextInputStyle.Short)
-                .setPlaceholder('[ใส่ชื่อเล่น]')
-                .setRequired(true);
-
-            const hobbyInput = new TextInputBuilder()
-                .setCustomId('hobbyInput')
-                .setLabel("งานอดิเรกของคุณคืออะไร?")
-                .setStyle(TextInputStyle.Short)
-                .setPlaceholder('[เล่นเกม, ร้องเพลง, ฟังเพลง, ฯลฯ]')
-                .setRequired(true);
-
-            const favoriteInput = new TextInputBuilder()
-                .setCustomId('favoriteInput')
-                .setLabel("สิ่งที่คุณชอบคืออะไร?")
-                .setStyle(TextInputStyle.Short)
-                .setPlaceholder('[อาหาร, สิ่งของ, หรือบางสิ่งอย่างอื่น]')
-                .setRequired(true);
-
-            // Create action rows
-            const firstActionRow = new ActionRowBuilder().addComponents(nicknameInput);
-            const secondActionRow = new ActionRowBuilder().addComponents(hobbyInput);
-            const thirdActionRow = new ActionRowBuilder().addComponents(favoriteInput);
-
-            // Add components to modal
-            modal.addComponents(firstActionRow, secondActionRow, thirdActionRow);
-
-            // Display the modal to the user
+            // Display the modal
             await interaction.showModal(modal);
         } catch (error) {
             console.error('Error executing introduce command:', error);
             return interaction.reply({
                 content: 'An unexpected error occurred while processing your command. Please try again later.',
-                ephemeral: true,
+                flags: 64, // ใช้ flags แทน ephemeral
             });
         }
     },
