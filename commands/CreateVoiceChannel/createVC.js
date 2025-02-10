@@ -33,6 +33,15 @@ module.exports = {
         }
 
         try {
+            // Check if the bot has already created a voice channel
+            const existingChannel = interaction.guild.channels.cache.find(channel => channel.name === channelName && channel.type === ChannelType.GuildVoice);
+            if (existingChannel) {
+                return interaction.reply({
+                    content: `A voice channel named "${channelName}" already exists.`,
+                    flags: 64
+                });
+            }
+
             // Create a new voice channel within the same category
             const newVoiceChannel = await interaction.guild.channels.create({
                 name: channelName,
