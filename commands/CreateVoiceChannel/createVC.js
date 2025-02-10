@@ -26,7 +26,7 @@ module.exports = {
         // Ensure the command is used within a category
         const category = interaction.channel.parent;
         if (!category) {
-            return interaction.Reply({
+            return interaction.reply({
                 content: 'Cannot create a voice channel because this channel is not inside a category.'
             });
         }
