@@ -11,15 +11,17 @@ module.exports = {
         try {
             // Check if the user executing the command is the specific user from config.json
             if (interaction.user.id !== config.ownerId) {
-                await interaction.reply({ content: `You aren't the owner. Only <@${config.ownerId}> can use this command. If you need assistance, please contact the bot owner.`, ephemeral: true });
+                await interaction.reply({ 
+                    content: `You aren't the owner. Only <@${config.ownerId}> can use this command. If you need assistance, please contact the bot owner.`, 
+                    flags: 64
+                });
                 return;
             }
-
 
             // Immediately acknowledge the interaction
             await interaction.deferReply({ ephemeral: false });
 
-            
+            // Fetch the target channel
             const targetChannel = interaction.guild.channels.cache.get(config.indEmbedChannel);
             if (!targetChannel) {
                 console.log('Target channel not found.');
@@ -27,41 +29,72 @@ module.exports = {
                 return;
             }
 
-            // Fetch all messages in the channel
-            const messages = await targetChannel.messages.fetch();
+            let updateTimes = 0; // Counter to track how many updates have been completed
+            let messageCount = 0; // Counter to track the total number of messages updated
 
-            // Function to update embed with the new avatar URL
+            // Function to update the avatar in the embed
             const updateAvatar = async (message) => {
                 const embeds = message.embeds;
                 if (!embeds.length) return;
 
                 const oldEmbed = embeds[0];
 
-                // Check if the embed has a matching title and tagged user
+                // Check if the embed matches the desired conditions (confirmed intro with a user tagged)
                 if (oldEmbed.title === 'Introduction has been confirmed.✅' && message.mentions.users.size > 0) {
                     const taggedUser = message.mentions.users.first();
                     const currentAvatarURL = taggedUser.displayAvatarURL({ dynamic: true });
 
-                    // Check if the current avatar matches the one in the embed
+                    // If the avatar in the embed is already the current one, no need to update
                     if (oldEmbed.thumbnail && oldEmbed.thumbnail.url === currentAvatarURL) {
+                        console.log(`Avatar already updated for ${taggedUser.tag}`);
                         return;
                     }
 
-                    const newEmbed = EmbedBuilder.from(oldEmbed)
-                        .setThumbnail(currentAvatarURL);
+                    // Create a new embed with the updated avatar
+                    const newEmbed = EmbedBuilder.from(oldEmbed).setThumbnail(currentAvatarURL);
 
                     // Update the message with the new embed
                     await message.edit({ embeds: [newEmbed] });
+                    console.log(`Updated avatar for ${taggedUser.tag}`);
+                    messageCount++;
                 }
             };
 
-            // Loop through each message and update the embed if necessary
-            for (const message of messages.values()) {
-                await updateAvatar(message);
+            // Fetch messages in the channel and update them in batches of 100
+            let fetchedMessages = [];
+            let lastMessageId = null;
+            do {
+                const options = { limit: 100 };
+                if (lastMessageId) {
+                    options.before = lastMessageId; // To get the next batch of messages
+                }
+
+                const messages = await targetChannel.messages.fetch(options);
+                if (messages.size === 0) break;
+
+                fetchedMessages = Array.from(messages.values());
+                for (const message of fetchedMessages) {
+                    await updateAvatar(message);
+                }
+
+                lastMessageId = fetchedMessages[fetchedMessages.length - 1].id; // Save the ID of the last message for the next batch
+
+                updateTimes++;
+
+            } while (fetchedMessages.length > 0); // Loop until no more messages are available
+
+            if (messageCount > 0) {
+                await interaction.editReply({
+                    content: `Successfully updated avatars for ${messageCount} message(s) in <#${config.indEmbedChannel}> after ${updateTimes} time(s).`,
+                    ephemeral: false
+                });
+            } else {
+                await interaction.editReply({
+                    content: `Error to update picture in <#${config.indEmbedChannel}>. No messages found to update.`,
+                    ephemeral: false
+                });
             }
 
-            // Send confirmation message
-            await interaction.editReply({ content: `Avatar in <#${config.indEmbedChannel}> has been updated.`, ephemeral: false });
         } catch (error) {
             console.error('Error executing update_introduce_avatar:', error);
             if (!interaction.replied) {
