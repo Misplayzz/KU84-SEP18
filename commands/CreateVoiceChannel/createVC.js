@@ -15,7 +15,7 @@ module.exports = {
         // Check if the command is used in an allowed channel
         if (!config.allowedChannelIds.includes(interaction.channel.id)) {
             return interaction.reply({
-                content:`You can only use this command in the following channels: ${config.allowedChannelIds.map(id => <#${id}>).join(', ')}`,
+                content: `You can only use this command in the following channels: ${config.allowedChannelIds.map(id => `<#${id}>`).join(', ')}`,
                 flags: 64
             });
         }
@@ -52,7 +52,7 @@ module.exports = {
 
             // Send a success message
             const reply = await interaction.reply({
-                content:`Voice channel created successfully: <#${newVoiceChannel.id}>. **__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`,
+                content: `Voice channel created successfully: <#${newVoiceChannel.id}>. **__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`,
                 flags: 64
             });
 
@@ -63,7 +63,7 @@ module.exports = {
                     await newVoiceChannel.delete().catch(console.error);
                     // Update the original reply
                     await interaction.editReply({
-                        content: Voice channel deleted because it was empty for 5 minutes.
+                        content: 'Voice channel deleted because it was empty for 5 minutes.'
                     });
                 }
             }, 5 * 60 * 1000); // 5 minutes in milliseconds
@@ -72,7 +72,7 @@ module.exports = {
             console.error('Error creating voice channel:', error);
             return interaction.reply({
                 content: 'An error occurred while creating the voice channel. Please try again.',
-                flags:64
+                flags: 64
             });
         }
     }
