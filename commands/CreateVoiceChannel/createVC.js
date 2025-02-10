@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ChannelType, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, ChannelType, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const config = require('../../config.json'); // Load allowedChannelIds from config.json
 
 module.exports = {
@@ -20,15 +20,17 @@ module.exports = {
             });
         }
 
+        // Defer the reply to prevent multiple interactions
+        await interaction.deferReply({ flags: 64 });
+
         // Get the channel name from the user's input
         const channelName = interaction.options.getString('channel_name');
 
         // Ensure the command is used within a category
         const category = interaction.channel.parent;
         if (!category) {
-            return interaction.reply({
-                content: 'Cannot create a voice channel because this channel is not inside a category.',
-                flags: 64
+            return interaction.editReply({
+                content: 'Cannot create a voice channel because this channel is not inside a category.'
             });
         }
 
@@ -50,10 +52,9 @@ module.exports = {
                 ]
             });
 
-            // Send a success message
-            const reply = await interaction.reply({
-                content: `Voice channel created successfully: <#${newVoiceChannel.id}>. **__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`,
-                flags: 64
+            // Update the deferred reply
+            await interaction.editReply({
+                content: `✅ Voice channel created successfully: <#${newVoiceChannel.id}>.\n**__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`
             });
 
             // Start tracking inactivity for deletion
@@ -61,18 +62,18 @@ module.exports = {
                 // Check if the channel is empty after 5 minutes
                 if (newVoiceChannel.members.size === 0) {
                     await newVoiceChannel.delete().catch(console.error);
-                    // Update the original reply
-                    await interaction.editReply({
-                        content: `Voice channel deleted because it was empty for 5 minutes.`
+                    // Inform the user that the channel was deleted
+                    await interaction.followUp({
+                        content: `🗑️ Voice channel <#${newVoiceChannel.id}> was deleted because it was empty for 5 minutes.`,
+                        flags: 64
                     });
                 }
             }, 5 * 60 * 1000); // 5 minutes in milliseconds
 
         } catch (error) {
             console.error('Error creating voice channel:', error);
-            return interaction.reply({
-                content: 'An error occurred while creating the voice channel. Please try again.',
-                flags:64
+            return interaction.editReply({
+                content: '❌ An error occurred while creating the voice channel. Please try again.'
             });
         }
     }
