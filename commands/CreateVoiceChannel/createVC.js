@@ -20,16 +20,13 @@ module.exports = {
             });
         }
 
-        // Defer the reply to prevent multiple interactions
-        await interaction.deferReply({ flags: 64 });
-
         // Get the channel name from the user's input
         const channelName = interaction.options.getString('channel_name');
 
         // Ensure the command is used within a category
         const category = interaction.channel.parent;
         if (!category) {
-            return interaction.editReply({
+            return interaction.Reply({
                 content: 'Cannot create a voice channel because this channel is not inside a category.'
             });
         }
@@ -53,7 +50,7 @@ module.exports = {
             });
 
             // Update the deferred reply
-            await interaction.editReply({
+            await interaction.Reply({
                 content: `✅ Voice channel created successfully.\n**__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`
             });
 
