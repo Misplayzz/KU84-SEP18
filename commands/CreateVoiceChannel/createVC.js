@@ -53,7 +53,7 @@ module.exports = {
             // Send a success message
             const reply = await interaction.reply({
                 content: `Voice channel created successfully: <#${newVoiceChannel.id}>.\n**__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`,
-                flags: 4096
+                flags: 64
             });
 
             // Start tracking inactivity for deletion
@@ -72,7 +72,7 @@ module.exports = {
             console.error('Error creating voice channel:', error);
             return interaction.reply({
                 content: 'An error occurred while creating the voice channel. Please try again.',
-                flags: 4096
+                flags: 64
             });
         }
     }
