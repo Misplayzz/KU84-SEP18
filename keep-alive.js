@@ -1,15 +1,9 @@
-const http = require('http');
 const axios = require('axios');
 
-const PORT = process.env.PORT || 8080;
+// URL ที่ต้องการ ping เพื่อให้เซิร์ฟเวอร์ไม่เข้าสู่โหมด idle
 const KEEP_ALIVE_URL = 'https://ku84-sep18.onrender.com';
 
-// Create HTTP server to keep alive
-http.createServer((_, res) => res.end("I'm alive")).listen(PORT, () => {
-  console.log(`Keep-alive server running on port ${PORT}`);
-});
-
-// Ping the server every 5 minutes
+// Ping the server every 14 minutes
 setInterval(async () => {
   try {
     await axios.get(KEEP_ALIVE_URL);
@@ -17,4 +11,4 @@ setInterval(async () => {
   } catch (error) {
     console.error('Error pinging server:', error.message);
   }
-}, 300000); // 300000ms = 5 minutes
+}, 14 * 60 * 1000); // 14 นาทีในมิลลิวินาที
