@@ -16,7 +16,7 @@ module.exports = {
         if (!config.allowedChannelIds.includes(interaction.channel.id)) {
             return interaction.reply({
                 content: `You can only use this command in the following channels: ${config.allowedChannelIds.map(id => `<#${id}>`).join(', ')}`,
-                flags: 4096
+                flags: 64
             });
         }
 
@@ -28,7 +28,7 @@ module.exports = {
         if (!category) {
             return interaction.reply({
                 content: 'Cannot create a voice channel because this channel is not inside a category.',
-                flags: 4096
+                flags: 64
             });
         }
 
