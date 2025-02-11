@@ -7,7 +7,7 @@ module.exports = {
         console.log(`Ready! Logged in as ${client.user.tag}`);
         
         // ตั้งค่า Activity (กิจกรรม)
-        client.user.setActivity('/commandList\n[Bot version: 1.0.0]', { type: ActivityType.Watching });
+        client.user.setActivity('/commands-list\n[Bot version: 1.1.0]', { type: ActivityType.Watching });
 
         // ตั้งค่า status เป็น online
         client.user.setStatus('online');
