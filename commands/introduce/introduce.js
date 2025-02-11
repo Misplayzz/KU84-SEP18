@@ -9,42 +9,47 @@ module.exports = {
 
     async execute(interaction) {
         try {
-            const member = await interaction.guild.members.fetch(interaction.user.id);
+            const { guild, user, channelId } = interaction;
+            const member = await guild.members.fetch(user.id);
 
-            // Check for correct channel and role
-            if (interaction.channelId !== config.indChannel || !member.roles.cache.has(config.notIndRole)) {
+            // Check if the command is used in the correct channel and the user has the required role
+            if (channelId !== config.indChannel || !member.roles.cache.has(config.notIndRole)) {
                 return interaction.reply({
-                    content: `You can only use this command in the following channel: <#${config.indChannel}> and you must have the role <@&${config.notIndRole}>.`,
-                    flags: 64, // used flags instead of ephemeral
+                    content: `You can only use this command in <#${config.indChannel}> and must have <@&${config.notIndRole}> role.`,
+                    ephemeral: true,
                 });
             }
 
-            // Helper function to create text input fields
-            const createTextInput = (id, label, placeholder) => 
+            // Avoid duplicate replies
+            if (interaction.replied || interaction.deferred) return;
+
+            // Create the modal
+            const modal = new ModalBuilder()
+                .setCustomId('introduceModal')
+                .setTitle('Introduce Yourself');
+
+            // Create input fields
+            const fields = [
+                { id: 'nicknameInput', label: 'ชื่อเล่นของคุณชื่อว่าอะไร?', placeholder: '[ใส่ชื่อเล่น]', required: true },
+                { id: 'hobbyInput', label: 'งานอดิเรกของคุณคืออะไร?', placeholder: '[เล่นเกม, ร้องเพลง, ฟังเพลง, ฯลฯ]', required: true },
+                { id: 'favoriteInput', label: 'สิ่งที่คุณชอบคืออะไร?', placeholder: '[อาหาร, สิ่งของ, หรือบางสิ่งอย่างอื่น]', required: true }
+            ].map(({ id, label, placeholder, required }) =>
                 new TextInputBuilder()
                     .setCustomId(id)
                     .setLabel(label)
                     .setStyle(TextInputStyle.Short)
                     .setPlaceholder(placeholder)
-                    .setRequired(true);
+                    .setRequired(required)
+            );
 
-            // Create the modal
-            const modal = new ModalBuilder()
-                .setCustomId('introduceModal')
-                .setTitle('Send this message to introduce yourself.')
-                .addComponents(
-                    new ActionRowBuilder().addComponents(createTextInput('nicknameInput', "ชื่อเล่นของคุณชื่อว่าอะไร?", '[ใส่ชื่อเล่น]')),
-                    new ActionRowBuilder().addComponents(createTextInput('hobbyInput', "งานอดิเรกของคุณคืออะไร?", '[เล่นเกม, ร้องเพลง, ฟังเพลง, ฯลฯ]')),
-                    new ActionRowBuilder().addComponents(createTextInput('favoriteInput', "สิ่งที่คุณชอบคืออะไร?", '[อาหาร, สิ่งของ, หรือบางสิ่งอย่างอื่น]'))
-                );
+            modal.addComponents(...fields.map(input => new ActionRowBuilder().addComponents(input)));
 
-            // Display the modal
             await interaction.showModal(modal);
         } catch (error) {
             console.error('Error executing introduce command:', error);
             return interaction.reply({
-                content: 'An unexpected error occurred while processing your command. Please try again later.',
-                flags: 64, // ใช้ flags แทน ephemeral
+                content: 'An unexpected error occurred. Please try again later.',
+                flags: 64,
             });
         }
     },
