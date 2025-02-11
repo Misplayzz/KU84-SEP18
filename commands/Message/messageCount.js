@@ -3,8 +3,8 @@ const config = require('../../config.json'); // Load ownerId from config.json
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('message-count')
-        .setDescription('Displays the total number of messages in the specified channel.')
+        .setName('z-message-count')
+        .setDescription('Displays the total number of messages in the specified channel. [Owner-Only]')
         .addChannelOption(option =>
             option.setName('channel')
                 .setDescription('Select the channel to check the message count')
