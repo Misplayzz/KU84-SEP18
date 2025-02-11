@@ -19,9 +19,9 @@ module.exports = {
                 } catch (error) {
                     console.error(error);
                     if (interaction.replied || interaction.deferred) {
-                        await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+                        await interaction.followUp({ content: 'There was an error while executing this command!', flags: 64 });
                     } else {
-                        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+                        await interaction.reply({ content: 'There was an error while executing this command!', flags: 64 });
                     }
                 }
             }
@@ -32,7 +32,7 @@ module.exports = {
                     // Validate interaction context
                     if (!interaction.guild || !interaction.member) {
                         console.error('Interaction is not from a guild or lacks member data.');
-                        await interaction.reply({ content: 'This command can only be used in a server.', ephemeral: true });
+                        await interaction.reply({ content: 'This command can only be used in a server.', flags: 64 });
                         return;
                     }
 
@@ -66,7 +66,7 @@ module.exports = {
                         const botMember = await interaction.guild.members.fetch(interaction.client.user.id);
                         if (!botMember.permissions.has(PermissionsBitField.Flags.ManageRoles)) {
                             console.error('Bot does not have MANAGE_ROLES permission.');
-                            await interaction.reply({ content: 'I do not have permission to manage roles.', ephemeral: true });
+                            await interaction.reply({ content: 'I do not have permission to manage roles.', flags: 64 });
                             return;
                         }
 
@@ -74,13 +74,13 @@ module.exports = {
                         if (newRole && oldRole) {
                             if (botMember.roles.highest.position <= newRole.position) {
                                 console.error('Bot cannot manage the new role because it is higher in hierarchy.');
-                                await interaction.reply({ content: 'I cannot manage the roles due to hierarchy issues.', ephemeral: true });
+                                await interaction.reply({ content: 'I cannot manage the roles due to hierarchy issues.', flags: 64});
                                 return;
                             }
 
                             if (botMember.roles.highest.position <= oldRole.position) {
                                 console.error('Bot cannot manage the old role because it is higher in hierarchy.');
-                                await interaction.reply({ content: 'I cannot manage the roles due to hierarchy issues.', ephemeral: true });
+                                await interaction.reply({ content: 'I cannot manage the roles due to hierarchy issues.', flags: 64});
                                 return;
                             }
                         }
@@ -99,18 +99,18 @@ module.exports = {
                             .setNickname(`AKA: ${nickname}`);
                     } catch (error) {
                         console.error('Error setting nickname:', error);
-                        await interaction.reply({ content: 'Unable to set your nickname due to permission issues.', ephemeral: true });
+                        await interaction.reply({ content: 'Unable to set your nickname due to permission issues.', flags: 64});
                         return;
                     }
 
                     // Reply to close the modal
-                    await interaction.reply({ content: 'Your introduction has been submitted successfully!😊', ephemeral: true });
+                    await interaction.reply({ content: 'Your introduction has been submitted successfully!😊', flags:64});
                 }
             }
         } catch (error) {
             console.error('Error handling interaction:', error);
             if (!interaction.replied) {
-                await interaction.reply({ content: 'An unexpected error occurred.', ephemeral: true });
+                await interaction.reply({ content: 'An unexpected error occurred.', flags:64});
             }
         }
     },
