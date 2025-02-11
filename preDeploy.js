@@ -1,8 +1,10 @@
-const { Client, Intents } = require('discord.js');
+const { Client, GatewayIntentBits } = require('discord.js');
 const dotenv = require('dotenv');
 dotenv.config();  // โหลดค่า environment variables จากไฟล์ .env
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const client = new Client({
+    intents: [GatewayIntentBits.Guilds]
+});
 
 // รับค่า token จาก environment variable
 const token = process.env.TOKEN;
