@@ -18,111 +18,99 @@ module.exports = {
                     await command.execute(interaction);
                 } catch (error) {
                     console.error(error);
-                    await interaction.reply({ 
-                        content: 'There was an error while executing this command!', 
-                        flags: 64
-                    });
+                    if (interaction.replied || interaction.deferred) {
+                        await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+                    } else {
+                        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+                    }
                 }
             }
 
             // Handle modal submissions
-            if (interaction.isModalSubmit() && interaction.customId === 'introduceModal') {
-                if (!interaction.guild || !interaction.member) {
-                    console.error('Interaction is not from a guild or lacks member data.');
-                    await interaction.reply({ 
-                        content: 'This command can only be used in a server.', 
-                        flags: 64
-                    });
-                    return;
-                }
-
-                const nickname = interaction.fields.getTextInputValue('nicknameInput');
-                const hobby = interaction.fields.getTextInputValue('hobbyInput');
-                const favorite = interaction.fields.getTextInputValue('favoriteInput');
-
-                const taggedUser = interaction.user.toString();
-                const indEmbed = new EmbedBuilder()
-                    .setTitle('Introduction has been confirmed.✅')
-                    .setColor('#00FFFF')
-                    .addFields(
-                        { name: 'Nickname', value: nickname },
-                        { name: 'Hobby', value: hobby },
-                        { name: 'Favorite', value: favorite }
-                    )
-                    .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-                    .setTimestamp();
-
-                const targetChannel = interaction.guild.channels.cache.get(config.indEmbedChannel);
-                if (targetChannel) {
-                    await targetChannel.send({ content: taggedUser, embeds: [indEmbed] });
-
-                    // Fetch member and roles
-                    const member = interaction.member;
-                    const newRole = interaction.guild.roles.cache.get(config.indRole);
-                    const oldRole = interaction.guild.roles.cache.get(config.notIndRole);
-
-                    // Ensure the bot has permission to manage roles
-                    const botMember = await interaction.guild.members.fetchMe();
-                    if (!botMember.permissions.has(PermissionsBitField.Flags.ManageRoles)) {
-                        console.error('Bot does not have MANAGE_ROLES permission.');
-                        await interaction.reply({ 
-                            content: 'I do not have permission to manage roles.', 
-                            flags: 64
-                        });
+            if (interaction.isModalSubmit()) {
+                if (interaction.customId === 'introduceModal') {
+                    // Validate interaction context
+                    if (!interaction.guild || !interaction.member) {
+                        console.error('Interaction is not from a guild or lacks member data.');
+                        await interaction.reply({ content: 'This command can only be used in a server.', ephemeral: true });
                         return;
                     }
 
-                    // Check if the bot's role is higher than the roles it is trying to manage
-                    if (newRole && botMember.roles.highest.position <= newRole.position) {
-                        console.error('Bot cannot manage the new role due to hierarchy issues.');
-                        await interaction.reply({ 
-                            content: 'I cannot manage roles due to hierarchy restrictions.', 
-                            flags: 64
-                        });
+                    const nickname = interaction.fields.getTextInputValue('nicknameInput');
+                    const hobby = interaction.fields.getTextInputValue('hobbyInput');
+                    const favorite = interaction.fields.getTextInputValue('favoriteInput');
+
+                    const taggedUser = interaction.user.toString();
+                    const messageContent = `${taggedUser}`;
+                    const indEmbed = new EmbedBuilder()
+                        .setTitle('Introduction has been confirmed.✅')
+                        .setColor('#00FFFF')
+                        .addFields(
+                            { name: 'Nickname', value: nickname },
+                            { name: 'Hobby', value: hobby },
+                            { name: 'Favorite', value: favorite }
+                        )
+                        .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+                        .setTimestamp();
+
+                    const targetChannel = interaction.guild.channels.cache.get(config.indEmbedChannel);
+                    if (targetChannel) {
+                        await targetChannel.send({ content: messageContent, embeds: [indEmbed] });
+
+                        // Add new role and remove old role
+                        const member = await interaction.guild.members.fetch(interaction.user.id);
+                        const newRole = interaction.guild.roles.cache.get(config.indRole);
+                        const oldRole = interaction.guild.roles.cache.get(config.notIndRole);
+
+                        // Ensure the bot has permission to manage roles
+                        const botMember = await interaction.guild.members.fetch(interaction.client.user.id);
+                        if (!botMember.permissions.has(PermissionsBitField.Flags.ManageRoles)) {
+                            console.error('Bot does not have MANAGE_ROLES permission.');
+                            await interaction.reply({ content: 'I do not have permission to manage roles.', ephemeral: true });
+                            return;
+                        }
+
+                        // Check if the bot's role is higher than the roles it is trying to manage
+                        if (newRole && oldRole) {
+                            if (botMember.roles.highest.position <= newRole.position) {
+                                console.error('Bot cannot manage the new role because it is higher in hierarchy.');
+                                await interaction.reply({ content: 'I cannot manage the roles due to hierarchy issues.', ephemeral: true });
+                                return;
+                            }
+
+                            if (botMember.roles.highest.position <= oldRole.position) {
+                                console.error('Bot cannot manage the old role because it is higher in hierarchy.');
+                                await interaction.reply({ content: 'I cannot manage the roles due to hierarchy issues.', ephemeral: true });
+                                return;
+                            }
+                        }
+
+                        console.log(`Removing role ${oldRole.name} from ${member.user.tag} and adding role ${newRole.name}`);
+                        if (newRole) await member.roles.add(newRole);
+                        if (oldRole) await member.roles.remove(oldRole);
+                    } else {
+                        console.log('Target channel not found.');
+                    }
+
+                    // Update nickname
+                    try {
+                        await interaction.guild.members.cache
+                            .get(interaction.user.id)
+                            .setNickname(`AKA: ${nickname}`);
+                    } catch (error) {
+                        console.error('Error setting nickname:', error);
+                        await interaction.reply({ content: 'Unable to set your nickname due to permission issues.', ephemeral: true });
                         return;
                     }
 
-                    if (oldRole && botMember.roles.highest.position <= oldRole.position) {
-                        console.error('Bot cannot manage the old role due to hierarchy issues.');
-                        await interaction.reply({ 
-                            content: 'I cannot manage roles due to hierarchy restrictions.', 
-                            flags: 64
-                        });
-                        return;
-                    }
-
-                    console.log(`Updating roles: Removing ${oldRole?.name} and adding ${newRole?.name} for ${member.user.tag}`);
-                    if (newRole) await member.roles.add(newRole).catch(console.error);
-                    if (oldRole) await member.roles.remove(oldRole).catch(console.error);
-                } else {
-                    console.log('Target channel not found.');
+                    // Reply to close the modal
+                    await interaction.reply({ content: 'Your introduction has been submitted successfully!😊', ephemeral: true });
                 }
-
-                // Update nickname
-                try {
-                    await member.setNickname(`AKA: ${nickname}`);
-                } catch (error) {
-                    console.error('Error setting nickname:', error);
-                    await interaction.reply({ 
-                        content: 'Unable to set your nickname due to permission issues.', 
-                        flags: 64
-                    });
-                    return;
-                }
-
-                // Reply to close the modal
-                await interaction.reply({ 
-                    content: 'Your introduction has been submitted successfully!😊', 
-                    flags: 64
-                });
             }
         } catch (error) {
             console.error('Error handling interaction:', error);
             if (!interaction.replied) {
-                await interaction.reply({ 
-                    content: 'An unexpected error occurred.', 
-                    flags: 64 
-                });
+                await interaction.reply({ content: 'An unexpected error occurred.', ephemeral: true });
             }
         }
     },
