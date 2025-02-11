@@ -4,8 +4,8 @@ const config = require('../../config.json');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('upd-ind-pro')
-        .setDescription('Update introduction profile.'),
+        .setName('update-introduce-profile')
+        .setDescription('Update introduction profile. [Owner-Only]'),
 
     async execute(interaction) {
         try {
