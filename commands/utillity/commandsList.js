@@ -9,21 +9,28 @@ module.exports = {
     // Get all commands from client.commands
     const commands = interaction.client.commands;
     
-    // Convert commands to an array and sort alphabetically by command name
-    const sortedCommands = Array.from(commands.values()).sort((a, b) => a.data.name.localeCompare(b.data.name));
-    
+    // Convert commands to an array and sort alphabetically, placing [Owner-Only] commands at the bottom
+    const sortedCommands = Array.from(commands.values()).sort((a, b) => {
+      const isAOwnerOnly = a.data.description.includes('[Owner-Only]');
+      const isBOwnerOnly = b.data.description.includes('[Owner-Only]');
+      
+      if (isAOwnerOnly && !isBOwnerOnly) return 1; // Move a below b
+      if (!isAOwnerOnly && isBOwnerOnly) return -1; // Move b below a
+      return a.data.name.localeCompare(b.data.name); // Sort alphabetically otherwise
+    });
+
     // Create Embed
     const embed = new EmbedBuilder()
       .setTitle('Commands List')
-      .setDescription(`This bot has ${sortedCommands.length} commands which will show below.`) // Updated description
-      .setColor('#00FF00') // Embed color
+      .setDescription(`This bot has ${sortedCommands.length} commands which will show below.`)
+      .setColor('#00FF00')
       .setTimestamp();
-    
+
     // Add sorted commands to Embed
     sortedCommands.forEach(command => {
       embed.addFields({
         name: `/${command.data.name}`,
-        value: command.data.description || 'No description available', // Using description from SlashCommandBuilder
+        value: command.data.description || 'No description available',
         inline: false,
       });
     });
