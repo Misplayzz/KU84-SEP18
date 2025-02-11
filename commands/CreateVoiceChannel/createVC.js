@@ -52,7 +52,7 @@ module.exports = {
 
             // Send a success message
             const reply = await interaction.reply({
-                content: `Voice channel created successfully: <#${newVoiceChannel.id}>. **__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`,
+                content: `Voice channel created successfully: <#${newVoiceChannel.id}>.\n**__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`,
                 flags: 64
             });
 
