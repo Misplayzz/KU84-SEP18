@@ -1,25 +1,20 @@
 const http = require('http');
-const port = process.env.PORT || 8080;
+const axios = require('axios');
 
-// ฟังก์ชันสำหรับสร้างเซิร์ฟเวอร์
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end("I'm alive");
+const PORT = process.env.PORT || 8080;
+const KEEP_ALIVE_URL = 'https://ku84-sep18.onrender.com';
+
+// Create HTTP server to keep alive
+http.createServer((_, res) => res.end("I'm alive")).listen(PORT, () => {
+  console.log(`Keep-alive server running on port ${PORT}`);
 });
 
-// ฟังก์ชันปิงตัวเองทุกๆ 5 นาทีเพื่อไม่ให้เซิร์ฟเวอร์หยุด
-const pingServer = () => {
-  setInterval(() => {
-    http.get(`http://localhost:${port}`, (res) => {
-      console.log('Pinged server successfully');
-    }).on('error', (e) => {
-      console.error(`Error pinging server: ${e.message}`);
-    });
-  }, 5 * 60 * 1000); // 5 นาที
-};
-
-// เริ่มต้นเซิร์ฟเวอร์
-server.listen(port, () => {
-  console.log(`Keep-alive server running on port ${port}`);
-  pingServer(); // เรียกใช้ฟังก์ชันปิงเซิร์ฟเวอร์
-});
+// Ping the server every 5 minutes
+setInterval(async () => {
+  try {
+    await axios.get(KEEP_ALIVE_URL);
+    console.log('Pinged server successfully');
+  } catch (error) {
+    console.error('Error pinging server:', error.message);
+  }
+}, 300000); // 300000ms = 5 minutes
