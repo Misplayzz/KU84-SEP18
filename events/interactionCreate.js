@@ -101,7 +101,7 @@ module.exports = {
 
                 // Set nickname
                 try {
-                    await member.setNickname(`AKA: ${nickname}`);
+                    await member.setNickname(`${nickname}`);
                 } catch (error) {
                     console.error('Error setting nickname:', error);
                     return interaction.reply({ content: 'Unable to set your nickname due to permission issues.', flags: 64 });
