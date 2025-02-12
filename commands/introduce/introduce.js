@@ -12,27 +12,29 @@ module.exports = {
             const { guild, user, channelId } = interaction;
             const member = await guild.members.fetch(user.id);
 
-            // Check if the command is used in the correct channel and the user has the required role
+            // ตรวจสอบว่าใช้คำสั่งในช่องที่ถูกต้องและมี Role หรือไม่
             if (channelId !== config.indChannel || !member.roles.cache.has(config.notIndRole)) {
+                if (interaction.replied || interaction.deferred) return;
                 return interaction.reply({
                     content: `You can only use this command in <#${config.indChannel}> and must have <@&${config.notIndRole}> role.`,
-                    ephemeral: true,
+                    flags: 64, // ใช้ flags แทน ephemeral
                 });
             }
 
-            // Avoid duplicate replies
+            // เช็คว่ามีการตอบกลับหรือยัง
             if (interaction.replied || interaction.deferred) return;
 
-            // Create the modal
+            // สร้าง Modal
             const modal = new ModalBuilder()
                 .setCustomId('introduceModal')
                 .setTitle('Introduce Yourself');
 
-            // Create input fields
+            // กำหนดฟิลด์ข้อมูล
             const fields = [
                 { id: 'nicknameInput', label: 'ชื่อเล่นของคุณชื่อว่าอะไร?', placeholder: '[ใส่ชื่อเล่น]', required: true },
                 { id: 'hobbyInput', label: 'งานอดิเรกของคุณคืออะไร?', placeholder: '[เล่นเกม, ร้องเพลง, ฟังเพลง, ฯลฯ]', required: true },
-                { id: 'favoriteInput', label: 'สิ่งที่คุณชอบคืออะไร?', placeholder: '[อาหาร, สิ่งของ, หรือบางสิ่งอย่างอื่น]', required: true }
+                { id: 'favoriteInput', label: 'สิ่งที่คุณชอบคืออะไร?', placeholder: '[อาหาร, สิ่งของ, หรือบางสิ่งอย่างอื่น]', required: true },
+                { id: 'contactInput', label: 'ช่องทางติดต่อ', placeholder: '[IG, Facebook, and other platforms. (Optional)]', required: false }
             ].map(({ id, label, placeholder, required }) =>
                 new TextInputBuilder()
                     .setCustomId(id)
@@ -47,10 +49,10 @@ module.exports = {
             await interaction.showModal(modal);
         } catch (error) {
             console.error('Error executing introduce command:', error);
-            return interaction.reply({
-                content: 'An unexpected error occurred. Please try again later.',
-                flags: 64,
-            });
+            if (!interaction.replied && !interaction.deferred) {
+                await interaction.deferReply({ flags: 64 }); // ใช้ flags แทน ephemeral
+                await interaction.editReply({ content: 'An unexpected error occurred. Please try again later.' });
+            }
         }
     },
 };
