@@ -31,29 +31,23 @@ module.exports = {
                 // Change first letter of nickname to uppercase if it's lowercase
                 if (nickname && nickname.length > 0) {
                     nickname = nickname.charAt(0).toUpperCase() + nickname.slice(1);
-                } else {
-                    nickname = "No nickname provided"; // Fallback if nickname is empty
                 }
 
-                // Fallback values if fields are empty
-                const hobbyValue = hobby || "No hobby provided";
-                const favoriteValue = favorite || "No favorite provided";
-                
+                // Create Embed
                 const embed = new EmbedBuilder()
                     .setTitle('Introduction has been confirmed.✅')
                     .setColor('#00FFFF')
                     .addFields(
-                        { name: 'Nickname', value: nickname },
-                        { name: 'Hobby', value: hobbyValue },
-                        { name: 'Favorite', value: favoriteValue }
+                        { name: 'Nickname', value: nickname},
+                        { name: 'Hobby', value: hobby},
+                        { name: 'Favorite', value: favorite}
                     )
                     .setThumbnail(user.displayAvatarURL({ dynamic: true }))
                     .setTimestamp();
 
-                // Add Contact field only if it's not empty
-                if (contact) {
-                    const contactValue = contact || "No contact provided";
-                    embed.addFields({ name: 'Contact', value: contactValue });
+                // ถ้า contact ไม่ว่าง ให้เพิ่มเข้าไป
+                if (contact && contact.trim().length > 0) {
+                    embed.addFields({ name: 'Contact', value: contact });
                 }
 
                 const targetChannel = guild.channels.cache.get(config.indEmbedChannel);
