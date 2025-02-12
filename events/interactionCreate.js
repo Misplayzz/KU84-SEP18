@@ -33,21 +33,47 @@ module.exports = {
                     nickname = nickname.charAt(0).toUpperCase() + nickname.slice(1);
                 }
 
+                // Function to split text while ensuring every line does not exceed maxLine
+                const splitText = (text, maxLine = 50) => {
+                    const words = text.split(', ');
+                    let result = [];
+                    let currentLine = '';
+
+                    for (let i = 0; i < words.length; i++) {
+                        const testLine = currentLine ? `${currentLine}, ${words[i]}` : words[i];
+
+                        if (testLine.length > maxLine) {
+                            result.push(currentLine.trim());
+                            currentLine = words[i];
+                        } else {
+                            currentLine = testLine;
+                        }
+                    }
+
+                    if (currentLine) result.push(currentLine.trim());
+                    return result.join('\n');
+                };
+
+                // Format fields with line breaks
+                const formattedHobby = hobby && hobby.length > 0 ? splitText(hobby, 50) : '';
+                const formattedFavorite = favorite && favorite.length > 0 ? splitText(favorite, 50) : '';
+                const formattedContact = contact && contact.trim().length > 0 ? splitText(contact, 50) : null;
+
                 // Create Embed
                 const embed = new EmbedBuilder()
                     .setTitle('Introduction has been confirmed.✅')
                     .setColor('#00FFFF')
                     .addFields(
-                        { name: 'Nickname', value: nickname},
-                        { name: 'Hobby', value: hobby},
-                        { name: 'Favorite', value: favorite}
+                        { name: 'Nickname', value: nickname },
+                        { name: 'Hobby', value: formattedHobby },
+                        { name: 'Favorite', value: formattedFavorite }
                     )
                     .setThumbnail(user.displayAvatarURL({ dynamic: true }))
                     .setTimestamp();
 
                 // ถ้า contact ไม่ว่าง ให้เพิ่มเข้าไป
-                if (contact && contact.trim().length > 0) {
-                    embed.addFields({ name: 'Contact', value: contact });
+                if (formattedContact) {
+                    embed.addFields({ name: 'Contact', value: formattedContact });
                 }
 
                 const targetChannel = guild.channels.cache.get(config.indEmbedChannel);
