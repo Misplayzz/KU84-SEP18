@@ -91,8 +91,8 @@ module.exports = {
 
                 if (newRole && oldRole) {
                     if (botMember.roles.highest.position <= Math.max(newRole.position, oldRole.position)) {
-                        console.error('Bot lacks sufficient role hierarchy.');
-                        return interaction.reply({ content: 'I cannot manage roles due to hierarchy issues.', flags: 64 });
+                        console.error('Bot lacks sufficient role position.');
+                        return interaction.reply({ content: 'I cannot manage roles due to position issues.', flags: 64 });
                     }
 
                     await member.roles.add(newRole).catch(console.error);
