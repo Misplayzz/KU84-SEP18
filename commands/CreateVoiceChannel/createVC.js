@@ -15,13 +15,19 @@ module.exports = {
         const channelId = interaction.channelId;
 
         if (!allowedChannelIds.includes(channelId)) {
-            return interaction.reply({ content: `You can only use this command in the following channels: ${config.allowedChannelIds.map(id => `<#${id}>`).join(', ')}`, flags: 64 });
+            return interaction.reply({ 
+                content: `You can only use this command in the following channels: ${config.allowedChannelIds.map(id => `<#${id}>`).join(', ')}`, 
+                ephemeral: true 
+            });
         }
 
         const category = interaction.channel.parent;
 
         if (!category) {
-            return interaction.reply({ content: 'Cannot create a voice channel because this channel is not inside a category.', flags: 64 });
+            return interaction.reply({ 
+                content: 'Cannot create a voice channel because this channel is not inside a category.', 
+                ephemeral: true 
+            });
         }
 
         try {
@@ -37,48 +43,63 @@ module.exports = {
                 ],
             });
 
-            // Log the creation of the channel
             console.log(`Voice channel "${channelName}" created successfully.`);
 
-            // Notify user about the new channel
-            await interaction.reply({ content: `Voice channel <#${newChannel.id}> created successfully.\n**__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`, flags: 64 });
+            await interaction.reply({ 
+                content: `Voice channel <#${newChannel.id}> created successfully.\n**__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`, 
+                ephemeral: true 
+            });
 
-            // Store the new channel's ID
             const newChannelId = newChannel.id;
-            let timer; // Declare the timer variable outside
+            let timer;
 
-            // Function to restart the timer for deleting the channel if empty
             function restartEmptyChannelTimer() {
-                clearTimeout(timer); // Clear any existing timer
-                console.log(`Starting delete timer for empty voice channel: "${channelName}"`);  // Debugging log
+                clearTimeout(timer);
+                console.log(`Starting delete timer for empty voice channel: "${channelName}"`);
+
                 timer = setTimeout(async () => {
-                    const channel = await interaction.guild.channels.fetch(newChannelId);
-                    if (channel.members.size === 0) {
-                        await channel.delete();
-                        await interaction.editReply({ content: 'Voice channel deleted because it was empty for 5 minutes.' });
-                        console.log('Voice channel deleted because it was empty for 5 minutes.');
+                    const channel = interaction.guild.channels.cache.get(newChannelId);
+                    if (!channel) {
+                        console.log(`Voice channel "${channelName}" no longer exists. Skipping deletion.`);
+                        return;
+                    }
+
+                    try {
+                        const fetchedChannel = await interaction.guild.channels.fetch(newChannelId);
+                        if (fetchedChannel.members.size === 0) {
+                            await fetchedChannel.delete();
+                            await interaction.editReply({ content: 'Voice channel deleted because it was empty for 5 minutes.' });
+                            console.log('Voice channel deleted because it was empty for 5 minutes.');
+                        }
+                    } catch (error) {
+                        if (error.code === 10003) {
+                            console.log(`Channel ${newChannelId} does not exist anymore. Skipping deletion.`);
+                        } else {
+                            console.error('Error fetching channel:', error);
+                        }
                     }
                 }, 5 * 60 * 1000); // 5 minutes
             }
 
-            // Start the timer to delete the channel if empty
-            restartEmptyChannelTimer(); // Start the initial timer
+            restartEmptyChannelTimer();
 
-            // Listen for voiceStateUpdate to restart the timer when needed
             interaction.client.on('voiceStateUpdate', (oldState, newState) => {
                 if (oldState.channelId === newChannelId || newState.channelId === newChannelId) {
                     if (newState.channelId === newChannelId) {
                         console.log(`Canceling delete timer for voice channel: "${channelName}"`);
-                        clearTimeout(timer);  // Clear existing timer
+                        clearTimeout(timer);
                     } else if (oldState.channelId === newChannelId) {
                         console.log(`Starting delete timer for empty voice channel: "${channelName}"`);
-                        restartEmptyChannelTimer();  // Restart the timer to delete the channel if empty
+                        restartEmptyChannelTimer();
                     }
                 }
             });
         } catch (error) {
             console.error('Error creating voice channel:', error);
-            await interaction.reply({ content: 'An error occurred while creating the voice channel. Please try again.', flags: 64 });
+            await interaction.reply({ 
+                content: 'An error occurred while creating the voice channel. Please try again.', 
+                ephemeral: true 
+            });
         }
     },
 };
