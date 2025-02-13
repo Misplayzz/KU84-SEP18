@@ -5,7 +5,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 const deployCommands = require('./deploy-commands');
 
-require('./keep_alive');
+require('./keep-alive');
 
 // Load environment variables
 dotenv.config();
