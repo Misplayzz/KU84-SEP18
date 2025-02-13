@@ -1,15 +1,20 @@
-const http = require('http');
+const express = require('express');
 const axios = require('axios');
 
+const app = express();
 const PORT = process.env.PORT || 8080;
 const KEEP_ALIVE_URL = 'https://ku84-sep18.onrender.com';
 
-// Create HTTP server to keep alive
-http.createServer((_, res) => res.end("I'm alive")).listen(PORT, () => {
-  console.log(`Keep-alive server running on port ${PORT}`);
+// Route สำหรับ Render ให้รู้ว่าเซิร์ฟเวอร์ทำงาน
+app.get('/', (req, res) => {
+  res.send("I'm alive");
 });
 
-// Ping the server every 5 minutes
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+// Ping ตัวเองทุก 14 นาที (แต่ Render อาจยังปิดอยู่ดี)
 setInterval(async () => {
   try {
     await axios.get(KEEP_ALIVE_URL);
