@@ -17,7 +17,7 @@ module.exports = {
         if (!allowedChannelIds.includes(channelId)) {
             return interaction.reply({ 
                 content: `You can only use this command in the following channels: ${config.allowedChannelIds.map(id => `<#${id}>`).join(', ')}`, 
-                ephemeral: true 
+                flags: 64
             });
         }
 
@@ -26,7 +26,7 @@ module.exports = {
         if (!category) {
             return interaction.reply({ 
                 content: 'Cannot create a voice channel because this channel is not inside a category.', 
-                ephemeral: true 
+                flags: 64
             });
         }
 
@@ -47,7 +47,7 @@ module.exports = {
 
             await interaction.reply({ 
                 content: `Voice channel <#${newChannel.id}> created successfully.\n**__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`, 
-                ephemeral: true 
+                flags: 64
             });
 
             const newChannelId = newChannel.id;
@@ -98,7 +98,7 @@ module.exports = {
             console.error('Error creating voice channel:', error);
             await interaction.reply({ 
                 content: 'An error occurred while creating the voice channel. Please try again.', 
-                ephemeral: true 
+                flags : 64
             });
         }
     },
