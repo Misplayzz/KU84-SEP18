@@ -1,4 +1,4 @@
-const { ChannelType } = require('discord.js');  // ต้องการนำเข้า ChannelType
+const { ChannelType } = require('discord.js');
 
 let timer;
 
@@ -7,13 +7,13 @@ async function createVoiceChannel(interaction) {
     const category = interaction.channel.parent;
 
     if (!category) {
-        return interaction.reply({ content: 'Cannot create a voice channel because this channel is not inside a category.', flags: 64 });
+        return interaction.reply({ content: 'Cannot create a voice channel because this channel is not inside a category.', ephemeral: true });
     }
 
     try {
         const newChannel = await interaction.guild.channels.create({
             name: channelName,
-            type: ChannelType.GuildVoice,  // ใช้ ChannelType.GuildVoice แทน 'GUILD_VOICE'
+            type: ChannelType.GuildVoice,
             parent: category.id,
             permissionOverwrites: [
                 {
@@ -23,55 +23,58 @@ async function createVoiceChannel(interaction) {
             ],
         });
 
-        // ตรวจสอบว่า interaction ยังไม่ได้ตอบกลับ
         if (!interaction.replied) {
-            await interaction.reply({ content: `Voice channel "${channelName}" created successfully.`, flags: 64 });
+            await interaction.reply({ content: `Voice channel "${channelName}" created successfully.`, ephemeral: true });
         } else {
-            await interaction.followUp({ content: `Voice channel "${channelName}" created successfully.`, flags: 64 });
+            await interaction.followUp({ content: `Voice channel "${channelName}" created successfully.`, ephemeral: true });
         }
 
-        // Store the new channel's ID
         const newChannelId = newChannel.id;
 
-        // Function to restart the timer for deleting the channel if empty
         function restartEmptyChannelTimer() {
             clearTimeout(timer);
             timer = setTimeout(async () => {
-                const channel = await interaction.guild.channels.fetch(newChannelId);
-                if (channel.members.size === 0) {
-                    await channel.delete();
-                    await interaction.editReply({ content: 'Voice channel deleted because it was empty for 5 minutes.' });
-                    console.log('Voice channel deleted because it was empty for 5 minutes.');
+                const channel = interaction.guild.channels.cache.get(newChannelId);
+                if (!channel) {
+                    console.log(`Voice channel "${channelName}" no longer exists. Skipping deletion.`);
+                    return;
                 }
-            }, 5 * 60 * 1000); // 5 minutes
+
+                try {
+                    const fetchedChannel = await interaction.guild.channels.fetch(newChannelId);
+                    if (fetchedChannel.members.size === 0) {
+                        await fetchedChannel.delete();
+                        await interaction.editReply({ content: 'Voice channel deleted because it was empty for 5 minutes.' });
+                        console.log('Voice channel deleted because it was empty for 5 minutes.');
+                    }
+                } catch (error) {
+                    if (error.code === 10003) {
+                        console.log(`Channel ${newChannelId} does not exist anymore. Skipping deletion.`);
+                    } else {
+                        console.error('Error fetching channel:', error);
+                    }
+                }
+            }, 5 * 60 * 1000);
         }
 
-        // Start the timer to delete the channel if empty
-        timer = setTimeout(async () => {
-            const channel = await interaction.guild.channels.fetch(newChannelId);
-            if (channel.members.size === 0) {
-                await channel.delete();
-                await interaction.editReply({ content: 'Voice channel deleted because it was empty for 5 minutes.' });
-                console.log('Voice channel deleted because it was empty for 5 minutes.');
-            }
-        }, 5 * 60 * 1000); // 5 minutes
+        restartEmptyChannelTimer();
 
-        // ใช้ client.on แทน guild.on สำหรับการรับ event voiceStateUpdate
         client.on('voiceStateUpdate', (oldState, newState) => {
             if (oldState.channelId === newChannelId || newState.channelId === newChannelId) {
                 if (newState.channelId === newChannelId) {
                     console.log(`Canceling delete timer for voice channel: "${channelName}"`);
-                    clearTimeout(timer);  // Clear any existing timers
+                    clearTimeout(timer);
                 } else if (oldState.channelId === newChannelId) {
                     console.log(`Starting delete timer for empty voice channel: "${channelName}"`);
-                    restartEmptyChannelTimer();  // Restart the timer to delete the channel if empty
+                    restartEmptyChannelTimer();
                 }
             }
         });
+
     } catch (error) {
         console.error('Error creating voice channel:', error);
         if (!interaction.replied) {
-            await interaction.reply({ content: 'An error occurred while creating the voice channel.', flags: 64 });
+            await interaction.reply({ content: 'An error occurred while creating the voice channel.', ephemeral: true });
         }
     }
 }
