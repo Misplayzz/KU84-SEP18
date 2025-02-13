@@ -7,7 +7,7 @@ async function createVoiceChannel(interaction) {
     const category = interaction.channel.parent;
 
     if (!category) {
-        return interaction.reply({ content: 'Cannot create a voice channel because this channel is not inside a category.', ephemeral: true });
+        return interaction.reply({ content: 'Cannot create a voice channel because this channel is not inside a category.', flags: 64 });
     }
 
     try {
@@ -24,9 +24,9 @@ async function createVoiceChannel(interaction) {
         });
 
         if (!interaction.replied) {
-            await interaction.reply({ content: `Voice channel "${channelName}" created successfully.`, ephemeral: true });
+            await interaction.reply({ content: `Voice channel "${channelName}" created successfully.`, flags: 64 });
         } else {
-            await interaction.followUp({ content: `Voice channel "${channelName}" created successfully.`, ephemeral: true });
+            await interaction.followUp({ content: `Voice channel "${channelName}" created successfully.`, flags: 64 });
         }
 
         const newChannelId = newChannel.id;
@@ -74,7 +74,7 @@ async function createVoiceChannel(interaction) {
     } catch (error) {
         console.error('Error creating voice channel:', error);
         if (!interaction.replied) {
-            await interaction.reply({ content: 'An error occurred while creating the voice channel.', ephemeral: true });
+            await interaction.reply({ content: 'An error occurred while creating the voice channel.', flags: 64 });
         }
     }
 }
