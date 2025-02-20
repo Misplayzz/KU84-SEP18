@@ -10,7 +10,7 @@ function formatNickname(nickname) {
 
 // Helper function to format text (trim and ensure proper formatting)
 function formatText(text) {
-    return text && text.length > 0 ? text.trim() : 'No information provided';  // Trim spaces or provide default message
+    return text && text.length > 0 ? text.trim() : 'No information provided';
 }
 
 // Helper function to format text by splitting based on max length
@@ -87,7 +87,7 @@ async function setNickname(member, nickname) {
     }
 }
 
-// Helper function to clean text input (No change needed here as it's cleaning text format)
+// Helper function to clean text input
 function cleanTextInput(text) {
     return text
         .replace(/\s+/g, ' ')
@@ -101,56 +101,33 @@ function formatContactText(text) {
     let cleanedText = text.trim();
     if (!cleanedText) return 'No contact information provided.';
 
-    // **[ปรับปรุงใหม่!] Split ข้อความ Input ด้วย Comma (,) เป็นหลัก เพื่อแยก Contact แต่ละรายการ**
     const contactEntries = cleanedText.split(',');
     let formattedContact = [];
 
-    console.log('[formatContactText] Input text:', text);
-    console.log('[formatContactText] Contact Entries (Split by Comma):', contactEntries); // **[Debug] Log Contact Entries หลัง Split**
+    for (const entry of contactEntries) {
+        const trimmedEntry = entry.trim();
+        if (!trimmedEntry) continue;
 
-
-    for (const entry of contactEntries) { // **Loop วนซ้ำแต่ละ Contact Entry**
-        const trimmedEntry = entry.trim(); // Trim whitespace ในแต่ละ Entry
-        if (!trimmedEntry) continue; // ข้าม Entry ที่ว่างเปล่า
-
-        // **[ปรับปรุงใหม่!] Regex สำหรับจับ Contact Type และ Username ในแต่ละ Entry**
-        const contactTypeMatch = trimmedEntry.match(/^(IG|Instagram):\s*([a-zA-Z0-9._-]+)/i);//|FB|Facebook|X|Line
-
-        console.log('[formatContactText] Loop Entry:', trimmedEntry); // **[Debug] Log Entry ใน Loop**
-
+        const contactTypeMatch = trimmedEntry.match(/^(IG|Instagram):\s*([a-zA-Z0-9._-]+)/i);
 
         if (contactTypeMatch) {
             const type = contactTypeMatch[1].toUpperCase();
             const username = contactTypeMatch[2].trim();
 
-            console.log('[formatContactText] Found Contact Type:', type, 'Username:', username);
-
             let link = '';
             switch (type) {
                 case 'IG': link = `https://instagram.com/${username}`; break;
-                //case 'FB': link = `https://facebook.com/${username}`; break;
-                //case 'X': link = `https://twitter.com/${username}`; break;
-                //case 'LINE': link = `https://line.me/ti/p/~${username}`; break;
                 default: link = '';
             }
 
-            console.log('[formatContactText] Generated Link:', link);
-
-            const markdownLink = "[" + type + "](" + link + ")"; // สร้าง Markdown Link
-            formattedContact.push(markdownLink); // Push Markdown Link ลง Array
-            console.log('[formatContactText] Markdown Link Created:', markdownLink); // **[Debug] Log Markdown Link ที่สร้าง**
-
-
+            const markdownLink = `[${type}](${link})`;
+            formattedContact.push(markdownLink);
         } else {
-            formattedContact.push(trimmedEntry); // ถ้าไม่ Match Regex ให้ Push Entry เดิม (ที่ไม่ใช่ Markdown Link)
-            console.log('[formatContactText] No Match - Pushed Entry:', trimmedEntry); // **[Debug] Log Entry ที่ไม่ Match**
+            formattedContact.push(trimmedEntry);
         }
-        console.log('[formatContactText] Formatted Contact Array:', formattedContact); // **[Debug] Log Array หลัง Push ในแต่ละ Loop**
-
     }
 
     const finalContactText = formattedContact.join('\n').trim();
-    console.log('[formatContactText] Final Contact Text:', finalContactText);
     return finalContactText;
 }
 
@@ -188,10 +165,7 @@ module.exports = {
                         await interaction.reply(response);
                     }
                 }
-            } else if (
-                interaction.type === InteractionType.ModalSubmit &&
-                interaction.customId === 'introduceModal'
-            ) {
+            } else if (interaction.type === InteractionType.ModalSubmit && interaction.customId === 'introduceModal') {
                 console.log('[InteractionCreate] Processing modal submission: introduceModal');
 
                 await interaction.deferReply({ flags: 64 });
@@ -215,9 +189,11 @@ module.exports = {
                 const cleanedFavorite = cleanTextInput(favoriteInput);
                 const cleanedContact = cleanTextInput(contactInput);
 
-                const hobby = splitText(formatText(cleanedHobby), 50);
-                const favorite = splitText(formatText(cleanedFavorite), 50);
-                const contact = formatContactText(cleanedContact); // Use formatContactText to create hyperlinks
+                const maxLine = 'Introduction has been confirmed.✅'.length;
+
+                const hobby = splitText(formatText(cleanedHobby), maxLine);
+                const favorite = splitText(formatText(cleanedFavorite), maxLine);
+                const contact = formatContactText(cleanedContact);
 
                 console.log('[Debug Contact Markdown Link]:', contact);
 
