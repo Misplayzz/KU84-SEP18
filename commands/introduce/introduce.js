@@ -34,7 +34,7 @@ module.exports = {
                 { id: 'nicknameInput', label: 'ชื่อเล่นของคุณชื่อว่าอะไร?', placeholder: '[ใส่ชื่อเล่น]', required: true },
                 { id: 'hobbyInput', label: 'งานอดิเรกของคุณคืออะไร?', placeholder: '[เล่นเกม, ร้องเพลง, ฟังเพลง, ฯลฯ]', required: true },
                 { id: 'favoriteInput', label: 'สิ่งที่คุณชอบคืออะไร?', placeholder: '[อาหาร, สิ่งของ, หรือบางสิ่งอย่างอื่น]', required: true },
-                { id: 'contactInput', label: 'ช่องทางติดต่อ (Optional)', placeholder: '[IG, Facebook, and other platforms. (Pick the one you use the most!)]', required: false }
+                { id: 'contactInput', label: 'ช่องทางติดต่อ (Optional)', placeholder: '[IG]', required: false }
             ].map(({ id, label, placeholder, required }) =>
                 new TextInputBuilder()
                     .setCustomId(id)
