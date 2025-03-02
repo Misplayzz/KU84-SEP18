@@ -43,7 +43,7 @@ module.exports = {
         ],
       });
 
-      console.log(`Voice channel "${channelName}" created successfully.`);
+      console.log(`Voice channel "${channelName}" requested by "${interaction.user.tag}" created successfully.`);
       await interaction.reply({
         content: `Voice channel <#${newChannel.id}> created successfully.\n**__If no one is in this voice channel for more than 5 minutes, it will be deleted.__**`,
         flags: 64
